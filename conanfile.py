@@ -78,7 +78,7 @@ class CythonConan(ConanFile):
             self.run('{0} -m pip install --prefix= --root="{1}" .'.format(self.active_python_exec, self.package_folder))
 
     def package(self):
-        pass
+        os.makedirs(os.path.join(self.package_folder, "include"))
 
     def package_info(self):
         self.runenv_info.append_path("PYTHONPATH", os.path.join(self.package_folder, "lib", f"python{self.pyver}", "site-packages"))
