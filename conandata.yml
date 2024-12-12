@@ -1,0 +1,4 @@
+sources:
+  "3.0.11-1":
+    url: "https://github.com/cython/cython/releases/download/3.0.11-1/cython-3.0.11.tar.gz"
+    sha256: "7146dd2af8682b4ca61331851e6aebce9fe5158e75300343f80c07ca80b1faff"
