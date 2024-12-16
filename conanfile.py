@@ -12,6 +12,8 @@ class CythonConan(ConanFile):
     python_requires = "camp_common/0.5@camposs/stable"
     python_requires_extend = "camp_common.CampPythonBase"
 
+    package_type = "application"
+
     name = "cython"
     version = "3.0.11-1"
     license = "Apache"
@@ -32,24 +34,6 @@ class CythonConan(ConanFile):
         "with_system_python": False,
     }
 
-    @property
-    def pyver(self):
-        pyver = self.options.python_version
-        if self.options.with_system_python:
-            pyver = ".".join(self._python_version.split(".")[1:2])
-        return pyver
-
-    @property
-    def python_lib_path(self):
-        return os.path.join(self.package_folder, "lib", f"python{self.pyver}", "site-packages")
-    
-    @property
-    def active_python_exec(self):
-        if not self.options.with_system_python:
-            cpython = self.dependencies["cpython"]
-            return os.path.join(cpython.package_folder, "bin", "python")
-        return self._python_exec
-
     def build_requirements(self):
         if not self.options.with_system_python:
             self.requires("cpython/[~{}]".format(self.options.python_version))
@@ -61,7 +45,7 @@ class CythonConan(ConanFile):
 
     def generate(self):
         env1 = Environment()
-        env1.define("PYTHONPATH", self.python_lib_path)
+        env1.define("PYTHONPATH", os.path.join(self.package_folder, "lib", f"python{self._python_version}", "site-packages"))
         envvars = env1.vars(self)
         envvars.save_script("py_env_file")
 
@@ -72,15 +56,10 @@ class CythonConan(ConanFile):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def build(self):
-        if not os.path.isdir(self.python_lib_path):
-            os.makedirs(self.python_lib_path)
         with chdir(self, self.source_folder):
-            self.run('{0} -m pip install --prefix= --root="{1}" .'.format(self.active_python_exec, self.package_folder))
-
-    def package(self):
-        os.makedirs(os.path.join(self.package_folder, "include"))
+            self.run('{0} -m pip install --prefix= --root="{1}" .'.format(self._python_exec, self.package_folder))
 
     def package_info(self):
-        self.runenv_info.append_path("PYTHONPATH", os.path.join(self.package_folder, "lib", f"python{self.pyver}", "site-packages"))
-        self.buildenv_info.append_path("PYTHONPATH", os.path.join(self.package_folder, "lib", f"python{self.pyver}", "site-packages"))
+        self.runenv_info.append_path("PYTHONPATH", os.path.join(self.package_folder, "lib", f"python{self._python_version}", "site-packages"))
+        self.buildenv_info.append_path("PYTHONPATH", os.path.join(self.package_folder, "lib", f"python{self._python_version}", "site-packages"))
 
